@@ -33,7 +33,7 @@ object GameEntity {
 
     def getList(resultSet: ResultSet, list: List[GameEntity] = List()): List[GameEntity] = {
 
-      val newList = list.+:(createEntity(resultSet))
+      val newList = list :+ createEntity(resultSet)
 
       if (resultSet.next) {
 

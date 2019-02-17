@@ -49,7 +49,7 @@ object FileEntity {
 
     def getList(resultSet: ResultSet, list: List[FileEntity] = List()): List[FileEntity] = {
 
-      val newList = list.+:(getEntity(resultSet))
+      val newList = list :+ getEntity(resultSet)
 
       if (resultSet.next) {
 

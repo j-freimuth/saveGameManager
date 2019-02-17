@@ -2,7 +2,7 @@ package db
 
 import java.sql.{Connection, DriverManager, Statement}
 
-import db.entity.{FileEntity, GameEntity}
+import db.entity.{FileEntity, GameEntity, GameFileEntity}
 
 import scala.util.Try
 
@@ -200,7 +200,7 @@ class SqliteDatabase {
       * @param entities entities to be deleted
       * @return
       */
-    def deleteGame(entities: List[GameEntity]): Try[Boolean] = Try {
+    def deleteGames(entities: List[GameEntity]): Try[Boolean] = Try {
 
         val statement = con.prepareStatement(
             """
@@ -233,7 +233,91 @@ class SqliteDatabase {
     }
 
     // pragma mark GameFile
-    def addGameFile = ???
-    def updateGameFile = ???
-    def deleteGameFile = ???
+
+    /**
+      * Adds a game file to the database
+      *
+      * @param entity game file entity
+      * @return
+      */
+    def addGameFile(entity: GameFileEntity) = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |INSERT INTO game_file(file_id, game_id, uploaded)
+              |VALUES (?,?,?);
+            """.stripMargin
+        )
+
+        statement.setLong(1, entity.fileId)
+        statement.setLong(2, entity.gameId)
+        statement.setBoolean(3, entity.uploaded)
+
+        statement.execute()
+    }
+
+
+    /**
+      * Updates a preexisting game file entry
+      *
+      * @param entity game file entity
+      * @return
+      */
+    def updateGameFile(entity: GameFileEntity): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |UPDATE game_file SET
+              |file_id = ?,
+              |game_id = ?,
+              |uploaded = ?
+              |WHERE id = ?;
+            """.stripMargin
+        )
+
+        statement.setLong(1, entity.fileId)
+        statement.setLong(2, entity.gameId)
+        statement.setBoolean(3, entity.uploaded)
+        statement.setLong(4, entity.id)
+
+        statement.execute()
+    }
+
+    /**
+      * Delete game files from db
+      *
+      * @param entities entities to be deleted
+      * @return
+      */
+    def deleteGameFiles(entities: List[GameFileEntity]): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |DELETE FROM game_file
+              |WHERE id in (?);
+            """.stripMargin
+        )
+
+        statement.setString(1, entities.map(_.id).mkString(","))
+
+        statement.execute()
+    }
+
+    /**
+      * Select game files from the database
+      *
+      * @param entities entities to be selected
+      * @return
+      */
+    def selectGameFiles(entities: Option[List[GameFileEntity]]): Option[List[GameFileEntity]] = {
+
+        val statement = con.prepareStatement(s"SELECT * FROM game_file ${if (entities.nonEmpty) "WHERE id in (?);" else ";"}")
+
+        if (entities.nonEmpty) {
+
+            statement.setString(1, entities.get.map(_.id).mkString(","))
+        }
+
+        GameFileEntity.fromResultSet(statement.executeQuery())
+    }
 }
