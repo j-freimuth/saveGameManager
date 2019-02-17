@@ -56,6 +56,13 @@ class SqliteDatabase {
     }
 
     // pragma mark File
+
+    /**
+      * Adds a file to the database
+      *
+      * @param entity file entity
+      * @return
+      */
     def addFile(entity: FileEntity): Try[Boolean] = Try {
 
         val statement = con.prepareStatement(
@@ -74,8 +81,67 @@ class SqliteDatabase {
         statement.execute()
     }
 
-    def updateFile(entity: FileEntity) = ???
-    def deleteFile(entity: FileEntity) = ???
+    /**
+      * Updates a preexisting file entry
+      *
+      * @param entity file entity
+      * @return
+      */
+    def updateFile(entity: FileEntity): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |UPDATE file SET
+              |file_path = ?,
+              |hash = ?,
+              |uploaded = ?,
+              |last_update = ?,
+              |is_directory = ?
+              |WHERE id = ?;
+            """.stripMargin
+        )
+
+        statement.setString(1, entity.filePath)
+        statement.setString(2, entity.fileHash.getOrElse("NULL"))
+        statement.setBoolean(3, entity.uploaded)
+        statement.setTimestamp(4, entity.lastUpdate.toSqlTimestamp)
+        statement.setBoolean(5, entity.isDirectory)
+        statement.setLong(6, entity.id)
+
+        statement.execute()
+    }
+
+    /**
+      * Delete files from db
+      *
+      * @param entities entities to be deleted
+      * @return
+      */
+    def deleteFile(entities: List[FileEntity]): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |DELETE FROM file
+              |WHERE id in (?);
+            """.stripMargin
+        )
+
+        statement.setString(1, entities.map(_.id).mkString(","))
+
+        statement.execute()
+    }
+
+    def selectFiles(entities: Option[List[FileEntity]]): Option[List[FileEntity]] = {
+
+        val statement = con.prepareStatement(s"SELECT * FROM file ${if (entities.nonEmpty) "WHERE id in (?);" else ";"}")
+
+        if (entities.nonEmpty) {
+
+            statement.setString(1, entities.get.map(_.id).mkString(","))
+        }
+
+        FileEntity.fromResultSet(statement.executeQuery())
+    }
 
     // pragma mark Game
     def addGame = ???

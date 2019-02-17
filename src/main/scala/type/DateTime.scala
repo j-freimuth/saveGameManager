@@ -34,4 +34,11 @@ object DateTime {
    * @return
    */
   def now = new DateTime(LocalDateTime.now)
+
+  /**
+    * Create a new DateTime object from Timestamp
+    *
+    * @return
+    */
+  def fromTimestamp(timestamp: Timestamp) = DateTime(timestamp.toLocalDateTime)
 }
