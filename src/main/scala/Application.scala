@@ -1,19 +1,12 @@
-import UserInterface.MainUi
+import `type`.DateTime
+import db.SqliteDatabase
+import db.entity.FileEntity
 
-import scala.swing._
+object Application extends App {
 
-import scala.swing._
+  val db = new SqliteDatabase
+  db.createDb
 
-class UI extends MainFrame {
-  title = "GUI Program #1"
-  preferredSize = new Dimension(320, 240)
-  contents = new Label("Here is the contents!")
-}
-
-object GuiProgramOne {
-  def main(args: Array[String]) {
-    val ui = new UI
-    ui.visible = true
-    println("End of main function")
-  }
+  val entity = FileEntity(0L, "/path/to/file", Some("md5#231231892389"), true, DateTime.now, false)
+  db.addFile(entity)
 }
