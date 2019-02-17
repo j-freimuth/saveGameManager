@@ -1,0 +1,15 @@
+version: '3'
+services:
+  savefile_manager:
+    build: ./Docker
+    network_mode: bridge
+    volumes:
+      - .:/srv/www
+      - $HOME/.ivy2:/home/developer/.ivy2
+      - $HOME/.sbt:/home/developer/.sbt
+      # Making X applications work from docker
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      # Making X applications work form docker
+      - DISPLAY=$DISPLAY
+
