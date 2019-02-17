@@ -14,7 +14,7 @@ import scala.util.Try
  * @param fileHash hash of the file
  * @param uploaded whether the file was already uploaded
  * @param lastUpdate when the file was found first with this hash
- * @param isDirectory wheather we are dealing with a file or a directory
+ * @param isDirectory whether we are dealing with a file or a directory
  */
 case class FileEntity(
   id: Long,

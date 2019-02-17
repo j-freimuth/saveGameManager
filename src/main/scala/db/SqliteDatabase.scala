@@ -2,7 +2,7 @@ package db
 
 import java.sql.{Connection, DriverManager, Statement}
 
-import db.entity.FileEntity
+import db.entity.{FileEntity, GameEntity}
 
 import scala.util.Try
 
@@ -68,7 +68,7 @@ class SqliteDatabase {
         val statement = con.prepareStatement(
           """
             |INSERT INTO file(file_path, hash, uploaded, last_update, is_directory)
-            |VALUES (?,?,?,?,?)
+            |VALUES (?,?,?,?,?);
           """.stripMargin
         )
 
@@ -131,6 +131,12 @@ class SqliteDatabase {
         statement.execute()
     }
 
+    /**
+      * Select files from the database
+      *
+      * @param entities entities to be selected
+      * @return
+      */
     def selectFiles(entities: Option[List[FileEntity]]): Option[List[FileEntity]] = {
 
         val statement = con.prepareStatement(s"SELECT * FROM file ${if (entities.nonEmpty) "WHERE id in (?);" else ";"}")
@@ -144,9 +150,87 @@ class SqliteDatabase {
     }
 
     // pragma mark Game
-    def addGame = ???
-    def updateGame = ???
-    def deleteGame = ???
+
+    /**
+      * Adds a game to the database
+      *
+      * @param entity game entity
+      * @return
+      */
+    def addGame(entity: GameEntity) = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |INSERT INTO game(name)
+              |VALUES (?);
+            """.stripMargin
+        )
+
+        statement.setString(1, entity.name)
+
+        statement.execute()
+    }
+
+
+    /**
+      * Updates a preexisting game entry
+      *
+      * @param entity game entity
+      * @return
+      */
+    def updateGame(entity: GameEntity): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |UPDATE game SET
+              |name = ?
+              |WHERE id = ?;
+            """.stripMargin
+        )
+
+        statement.setString(1, entity.name)
+        statement.setLong(2, entity.id)
+
+        statement.execute()
+    }
+
+    /**
+      * Delete games from db
+      *
+      * @param entities entities to be deleted
+      * @return
+      */
+    def deleteGame(entities: List[GameEntity]): Try[Boolean] = Try {
+
+        val statement = con.prepareStatement(
+            """
+              |DELETE FROM game
+              |WHERE id in (?);
+            """.stripMargin
+        )
+
+        statement.setString(1, entities.map(_.id).mkString(","))
+
+        statement.execute()
+    }
+
+    /**
+      * Select games from the database
+      *
+      * @param entities entities to be selected
+      * @return
+      */
+    def selectGames(entities: Option[List[GameEntity]]): Option[List[GameEntity]] = {
+
+        val statement = con.prepareStatement(s"SELECT * FROM game ${if (entities.nonEmpty) "WHERE id in (?);" else ";"}")
+
+        if (entities.nonEmpty) {
+
+            statement.setString(1, entities.get.map(_.id).mkString(","))
+        }
+
+        GameEntity.fromResultSet(statement.executeQuery())
+    }
 
     // pragma mark GameFile
     def addGameFile = ???
